@@ -12,6 +12,15 @@ struct PySerial {
 
 #[pymethods]
 impl PySerial {
+    fn write(&mut self, data: &[u8]) {
+        match self.serial.write(data) {
+            Ok(_) => {}
+            Err(_) => {}
+        }
+    }
+
+    fn close(&mut self) {}
+
     #[new]
     fn connect(baud_rate: u32, port: &str) -> PySerial {
         // fn connect(baud_rate: u32, port: &str) -> PyResult<Box<dyn serialport::SerialPort>> {
@@ -22,6 +31,7 @@ impl PySerial {
 
         PySerial { serial }
     }
+
     fn read_line(&mut self) -> Vec<char> {
         let mut serial_buf: Vec<char> = Vec::new();
 
@@ -29,17 +39,19 @@ impl PySerial {
 
         while !done {
             let mut buf: Vec<u8> = vec![0, 32];
-            self.serial
-                .read(buf.as_mut_slice())
-                .expect("Found no data!");
 
-            for val in buf.iter() {
-                let v = *val as char;
-                serial_buf.push(v);
-                if '\n' == v {
-                    done = true;
-                    break;
+            match self.serial.read(buf.as_mut_slice()) {
+                Ok(_) => {
+                    for val in buf.iter() {
+                        let v = *val as char;
+                        serial_buf.push(v);
+                        if '\n' == v {
+                            done = true;
+                            break;
+                        }
+                    }
                 }
+                Err(_) => {}
             }
         }
 
