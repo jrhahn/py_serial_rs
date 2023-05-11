@@ -9,12 +9,12 @@ import time
 def current_milli_time():
     return round(time.time() * 1000)
 
-serial = PySerial(115200, "/dev/ttyS0")
+serial = PySerial(460800, "/dev/ttyS0")
 
 
 while True:
     try:
-        buffer = serial.read_line()
+        buffer = serial.read_line(5000)
     except:
         print("buffer not ready")
         continue;
@@ -23,3 +23,9 @@ while True:
     data = "".join(buffer).replace(" ", "")
 
     print(f"{timestamp} -> {data}")
+
+    try:
+        serial.write(b"b")
+    except:
+        print("Writing failed")
+        

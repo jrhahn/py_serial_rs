@@ -1,8 +1,7 @@
 use pyo3::prelude::*;
 use std::str;
 use std::time::Duration;
-use std::time::Instant;
-
+use std::time::SystemTime;
 // Example:
 // https://saidvandeklundert.net/2021-11-18-calling-rust-from-python-using-pyo3/
 #[pyclass]
@@ -14,8 +13,12 @@ struct PySerial {
 impl PySerial {
     fn write(&mut self, data: &[u8]) {
         match self.serial.write(data) {
-            Ok(_) => {}
-            Err(_) => {}
+            Ok(_) => {
+                println!("Write succeded");
+            }
+            Err(_) => {
+                println!("Write failed");
+            }
         }
     }
 
@@ -32,10 +35,12 @@ impl PySerial {
         PySerial { serial }
     }
 
-    fn read_line(&mut self) -> Vec<char> {
+    fn read_line(&mut self, timeout_in_millis: u64) -> Vec<char> {
         let mut serial_buf: Vec<char> = Vec::new();
 
         let mut done = false;
+        
+        let time_start = SystemTime::now();
 
         while !done {
             let mut buf: Vec<u8> = vec![0, 32];
@@ -45,15 +50,25 @@ impl PySerial {
                     for val in buf.iter() {
                         let v = *val as char;
                         serial_buf.push(v);
-                        if '\n' == v {
+                        if '\n' == v || '\r' == v  || 'a' == v {
                             done = true;
                             break;
                         }
                     }
                 }
                 Err(_) => {}
-            }
-        }
+            };
+                      
+            match time_start.elapsed() {
+                Ok(time_delta) => {
+                    if time_delta > Duration::from_millis(timeout_in_millis) {                        
+                        println!("Timeout occured.");
+                        break;
+                    }
+                }
+                Err(_) => {}
+            };
+        };
 
         serial_buf
     }
@@ -77,7 +92,7 @@ fn py_rust(_py: Python, m: &PyModule) -> PyResult<()> {
 }
 
 // fn main() {
-// list_ports();
+// list_ports(:);
 
 // let mut serial = PySerial::connect(460_800, "/dev/ttyS0");
 
