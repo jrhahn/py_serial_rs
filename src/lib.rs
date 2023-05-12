@@ -1,4 +1,6 @@
 use pyo3::prelude::*;
+use pyo3::{Python, PyErr};
+use pyo3::exceptions;
 use std::str;
 use std::time::Duration;
 use std::time::SystemTime;
@@ -9,30 +11,35 @@ struct PySerial {
     serial: Box<dyn serialport::SerialPort>,
 }
 
+
+// impl std::convert::From<serialport::Error> for PyErr {
+//     fn from(err: serialport::Error) -> PyErr {
+//         exceptions::PyOSError::py_err(err.to_string())
+//     }
+// }
+
 #[pymethods]
 impl PySerial {
-    fn write(&mut self, data: &[u8]) {
-        match self.serial.write(data) {
-            Ok(_) => {
-                println!("Write succeded");
-            }
-            Err(_) => {
-                println!("Write failed");
-            }
-        }
+    fn write(&mut self, data: &[u8]) -> PyResult<usize> {
+       Ok(self.serial.write(data)?)
     }
-
+    
     fn close(&mut self) {}
 
     #[new]
-    fn connect(baud_rate: u32, port: &str) -> PySerial {
+    fn connect(baud_rate: u32, port: &str) -> PyResult<PySerial> {
         // fn connect(baud_rate: u32, port: &str) -> PyResult<Box<dyn serialport::SerialPort>> {
-        let serial = serialport::new(port, baud_rate)
+        match serialport::new(port, baud_rate)
             .timeout(Duration::from_millis(10))
-            .open()
-            .expect("Failed to open port");
+            .open() {
+            Ok(serial) => {
+               Ok(PySerial { serial })
+            },
+            Err(error) => {
+                 Err(exceptions::PyTypeError::new_err(format!("Failed to open port {port}: {error}")))
+            }
+        }
 
-        PySerial { serial }
     }
 
     fn read_line(&mut self, timeout_in_millis: u64) -> Vec<char> {

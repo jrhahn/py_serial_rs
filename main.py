@@ -9,7 +9,7 @@ import time
 def current_milli_time():
     return round(time.time() * 1000)
 
-serial = PySerial(460800, "/dev/ttyS0")
+serial = PySerial(460800, "/dev/ttyS1")
 
 
 while True:
@@ -25,7 +25,8 @@ while True:
     print(f"{timestamp} -> {data}")
 
     try:
-        serial.write(b"b")
+        serial.write(b"from nixos\n")
+        print("write succes")
     except:
         print("Writing failed")
         
