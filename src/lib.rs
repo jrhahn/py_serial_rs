@@ -62,15 +62,14 @@ impl PySerial {
                 Err(_) => {}
             };
 
-            match time_start.elapsed() {
-                Ok(time_delta) => {
-                    if time_delta > Duration::from_millis(timeout_in_millis) {
-                        println!("Timeout occured.");
-                        break;
-                    }
+            if let Ok(time_elapsed) = time_start.elapsed() {
+                if time_elapsed > Duration::from_millis(timeout_in_millis) {
+                    // todo raise Exception
+                    return Err(exceptions::PyTimeoutError::new_err(format!(
+                        "Timeout occurred when trying to reading",
+                    )));
                 }
-                Err(_) => {}
-            };
+            }
         }
 
         Ok(serial_buf)
