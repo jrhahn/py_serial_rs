@@ -16,12 +16,6 @@ fn check_python_signals() -> PyResult<()> {
 
 #[pymethods]
 impl PySerial {
-    fn write(&mut self, data: &[u8]) -> PyResult<usize> {
-        Ok(self.serial.write(data)?)
-    }
-
-    fn close(&mut self) {}
-
     #[new]
     fn connect(baud_rate: u32, port: &str) -> PyResult<PySerial> {
         // fn connect(baud_rate: u32, port: &str) -> PyResult<Box<dyn serialport::SerialPort>> {
@@ -48,32 +42,34 @@ impl PySerial {
 
             let mut buf: Vec<u8> = vec![0, 32];
 
-            match self.serial.read(buf.as_mut_slice()) {
-                Ok(_) => {
-                    for val in buf.iter() {
-                        let v = *val as char;
-                        serial_buf.push(v);
-                        if '\n' == v || '\r' == v || 'a' == v {
-                            done = true;
-                            break;
-                        }
+            if self.serial.read(buf.as_mut_slice()).is_ok() {
+                for val in buf.iter() {
+                    let v = *val as char;
+                    serial_buf.push(v);
+                    if '\n' == v || '\r' == v || 'a' == v {
+                        done = true;
+                        break;
                     }
                 }
-                Err(_) => {}
             };
 
             if let Ok(time_elapsed) = time_start.elapsed() {
                 if time_elapsed > Duration::from_millis(timeout_in_millis) {
-                    // todo raise Exception
-                    return Err(exceptions::PyTimeoutError::new_err(format!(
+                    return Err(exceptions::PyTimeoutError::new_err(
                         "Timeout occurred when trying to reading",
-                    )));
+                    ));
                 }
             }
         }
 
         Ok(serial_buf)
     }
+
+    fn write(&mut self, data: &[u8]) -> PyResult<usize> {
+        Ok(self.serial.write(data)?)
+    }
+
+    fn close(&mut self) {}
 }
 
 #[pyfunction]

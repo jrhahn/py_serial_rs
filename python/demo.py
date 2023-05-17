@@ -1,32 +1,45 @@
 #! /usr/bin/env python
 
+import logging
+import socket
+import time
+
 from py_rust import PySerial
 
-
-import time
+logger = logging.getLogger(__name__)
 
 
 def current_milli_time():
     return round(time.time() * 1000)
 
-serial = PySerial(460800, "/dev/ttyS0")
+
+def run() -> None:
+    serial = PySerial(
+        baud_rate=460800,
+        port="/dev/ttyS0",
+    )
+
+    message = f"{socket.gethostname()}"
+
+    while True:
+        try:
+            buffer = serial.read_line(
+                timeout_in_millis=5000,
+            )
+        except Exception as e:
+            logger.info(f"buffer not ready: {e}")
+            continue
+
+        timestamp = current_milli_time()
+        data = "".join(buffer).replace(" ", "")
+
+        logger.info(f"{timestamp}: {data}")
+
+        try:
+            serial.write(f"{message}\n".encode())
+        except Exeption as e:
+            logger.error(f"Failed to write: {e}")
 
 
-while True:
-    try:
-        buffer = serial.read_line(5000)
-    except Exception as e:
-        print(f"buffer not ready: {e}")
-        continue;
-
-    timestamp = current_milli_time()
-    data = "".join(buffer).replace(" ", "")
-
-    print(f"{timestamp} -> {data}")
-
-    try:
-        serial.write(b"from nixos\n")
-        print("write succes")
-    except:
-        print("Writing failed")
-        
+if __name__ == "__main__":
+    run()
