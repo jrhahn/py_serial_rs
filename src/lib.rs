@@ -56,7 +56,7 @@ impl PySerial {
             if let Ok(time_elapsed) = time_start.elapsed() {
                 if time_elapsed > Duration::from_millis(timeout_in_millis) {
                     return Err(exceptions::PyTimeoutError::new_err(
-                        "Timeout occurred when trying to reading",
+                        "Timeout occurred when trying to read",
                     ));
                 }
             }
