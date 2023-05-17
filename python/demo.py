@@ -6,7 +6,6 @@ import time
 
 from py_rust import PySerial
 
-logger = logging.getLogger(__name__)
 
 
 def current_milli_time():
@@ -14,6 +13,8 @@ def current_milli_time():
 
 
 def run() -> None:
+    logging.basicConfig(level=logging.INFO)
+    logger = logging.getLogger(__name__)
     serial = PySerial(
         baud_rate=460800,
         port="/dev/ttyS0",
@@ -27,7 +28,7 @@ def run() -> None:
                 timeout_in_millis=5000,
             )
         except Exception as e:
-            logger.info(f"buffer not ready: {e}")
+            logger.info(f"Reading failed: {e}")
             continue
 
         timestamp = current_milli_time()
