@@ -46,7 +46,7 @@ impl PySerial {
                 for val in buf.iter() {
                     let v = *val as char;
                     serial_buf.push(v);
-                    if '\n' == v || '\r' == v || 'a' == v {
+                    if '\n' == v || '\r' == v {
                         done = true;
                         break;
                     }
