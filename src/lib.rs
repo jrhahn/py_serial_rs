@@ -18,6 +18,12 @@ struct PySerial {
 //     }
 // }
 
+fn check_python() -> PyResult<()> {
+Python::with_gil(|py| -> PyResult<()> {
+    py.check_signals() 
+})
+}
+
 #[pymethods]
 impl PySerial {
     fn write(&mut self, data: &[u8]) -> PyResult<usize> {
@@ -42,14 +48,16 @@ impl PySerial {
 
     }
 
-    fn read_line(&mut self, timeout_in_millis: u64) -> Vec<char> {
+    fn read_line(&mut self, timeout_in_millis: u64) -> PyResult<Vec<char>> {
         let mut serial_buf: Vec<char> = Vec::new();
 
         let mut done = false;
         
         let time_start = SystemTime::now();
-
+        
         while !done {
+            check_python()?;
+            
             let mut buf: Vec<u8> = vec![0, 32];
 
             match self.serial.read(buf.as_mut_slice()) {
@@ -77,7 +85,7 @@ impl PySerial {
             };
         };
 
-        serial_buf
+        Ok(serial_buf)
     }
 }
 
