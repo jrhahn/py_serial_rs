@@ -7,7 +7,6 @@ import time
 from py_rust import PySerial
 
 
-
 def current_milli_time():
     return round(time.time() * 1000)
 
@@ -27,13 +26,13 @@ def run() -> None:
             buffer = serial.read_line(
                 timeout_in_millis=5000,
             )
+            timestamp = current_milli_time()
+            data = "".join(buffer).replace(" ", "")
+
+            logger.info(f"{timestamp}: {data}")
+
         except Exception as e:
             logger.info(f"Reading failed: {e}")
-
-        timestamp = current_milli_time()
-        data = "".join(buffer).replace(" ", "")
-
-        logger.info(f"{timestamp}: {data}")
 
         try:
             serial.write(f"{message}\r\n".encode())
