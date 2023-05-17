@@ -3,6 +3,6 @@ stdenv.mkDerivation rec {
       LIBCLANG_PATH = "${llvmPackages.libclang}/lib"; 
       name = "OpenEthereum";
       src = null;
-      buildInputs = [ rustup openssl pkgconfig udev clang maturin];
+      buildInputs = [ rustup rust-analyzer openssl pkgconfig udev clang maturin];
   }
 
