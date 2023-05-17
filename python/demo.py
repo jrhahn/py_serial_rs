@@ -36,7 +36,7 @@ def run() -> None:
         logger.info(f"{timestamp}: {data}")
 
         try:
-            serial.write(f"{message}\n".encode())
+            serial.write(f"{message}\r\n".encode())
         except Exeption as e:
             logger.error(f"Failed to write: {e}")
 
