@@ -29,7 +29,6 @@ def run() -> None:
             )
         except Exception as e:
             logger.info(f"Reading failed: {e}")
-            continue
 
         timestamp = current_milli_time()
         data = "".join(buffer).replace(" ", "")
