@@ -1,0 +1,15 @@
+[package]
+name = "py_rust"
+version = "0.1.0"
+edition = "2021"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+[lib]
+name = "py_rust"
+crate-type = ["cdylib"]
+
+[dependencies]
+clippy = "0.0.302"
+pyo3 = "0.18.1"
+serialport = "4.2.0"
+time = "0.3.20"
