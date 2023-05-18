@@ -20,7 +20,7 @@ fn check_python_signals() -> PyResult<()> {
 }
 
 fn is_new_line(value: u8) -> bool {
-    0xa0 == value
+    0x0a == value
 }
 
 fn copy_until_end_of_line(buffer_current: &[u8]) -> SerialReadResult {
@@ -43,7 +43,6 @@ fn copy_until_end_of_line(buffer_current: &[u8]) -> SerialReadResult {
 impl PySerial {
     #[new]
     fn connect(baud_rate: u32, port: &str) -> PyResult<PySerial> {
-        // fn connect(baud_rate: u32, port: &str) -> PyResult<Box<dyn serialport::SerialPort>> {
         match serialport::new(port, baud_rate)
             .timeout(Duration::from_millis(10))
             .open()
@@ -55,7 +54,7 @@ impl PySerial {
         }
     }
 
-    fn read_line(&mut self, timeout_in_millis: u64) -> PyResult<Vec<u8>> {
+    fn read_line(&mut self, timeout_in_millis: u64) -> PyResult<String> {
         let time_start = SystemTime::now();
         let mut buffer: Vec<u8> = Vec::new();
 
@@ -84,7 +83,9 @@ impl PySerial {
         }
         // serial_buf.iter().collect::<String>().as_bytes()
 
-        Ok(buffer)
+        let result = String::from_utf8(buffer)?;
+
+        Ok(result)
     }
 
     fn write(&mut self, data: &[u8]) -> PyResult<usize> {

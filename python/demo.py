@@ -20,14 +20,13 @@ def run() -> None:
     )
 
     message = f"{socket.gethostname()}"
-    # message = "123\456"
     while True:
         try:
-            buffer = serial.read_line(
+            data = serial.read_line(
                 timeout_in_millis=5000,
             )
+
             timestamp = current_milli_time()
-            data = "".join(buffer).replace(" ", "")
 
             logger.info(f"{timestamp}: {data}")
 
