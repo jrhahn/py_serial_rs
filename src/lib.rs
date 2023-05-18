@@ -5,6 +5,11 @@ use std::str;
 use std::time::Duration;
 use std::time::SystemTime;
 
+struct SerialReadResult<'a> {
+    data: &'a [u8],
+    is_complete: bool,
+}
+
 #[pyclass]
 struct PySerial {
     serial: Box<dyn serialport::SerialPort>,
@@ -12,6 +17,26 @@ struct PySerial {
 
 fn check_python_signals() -> PyResult<()> {
     Python::with_gil(|py| -> PyResult<()> { py.check_signals() })
+}
+
+fn is_new_line(value: u8) -> bool {
+    0xa0 == value
+}
+
+fn copy_until_end_of_line(buffer_current: &[u8]) -> SerialReadResult {
+    let mut len = buffer_current.len();
+
+    for (i, v) in buffer_current.iter().enumerate() {
+        if is_new_line(*v) {
+            len = i;
+            break;
+        }
+    }
+
+    SerialReadResult {
+        data: &buffer_current[..len],
+        is_complete: len < buffer_current.len(),
+    }
 }
 
 #[pymethods]
@@ -30,26 +55,22 @@ impl PySerial {
         }
     }
 
-    fn read_line(&mut self, timeout_in_millis: u64) -> PyResult<Vec<char>> {
-        let mut serial_buf: Vec<char> = Vec::new();
-
-        let mut done = false;
-
+    fn read_line(&mut self, timeout_in_millis: u64) -> PyResult<Vec<u8>> {
         let time_start = SystemTime::now();
+        let mut buffer: Vec<u8> = Vec::new();
 
-        while !done {
+        loop {
             check_python_signals()?;
 
-            let mut buf: Vec<u8> = vec![0, 32];
+            let mut buffer_current: Vec<u8> = vec![0, 32];
 
-            if self.serial.read(buf.as_mut_slice()).is_ok() {
-                for val in buf.iter() {
-                    let v = *val as char;
-                    serial_buf.push(v);
-                    if '\n' == v || '\r' == v {
-                        done = true;
-                        break;
-                    }
+            if self.serial.read(buffer_current.as_mut_slice()).is_ok() {
+                let serial_result = copy_until_end_of_line(&buffer_current);
+
+                buffer.extend_from_slice(serial_result.data);
+
+                if serial_result.is_complete {
+                    break;
                 }
             };
 
@@ -61,8 +82,9 @@ impl PySerial {
                 }
             }
         }
+        // serial_buf.iter().collect::<String>().as_bytes()
 
-        Ok(serial_buf)
+        Ok(buffer)
     }
 
     fn write(&mut self, data: &[u8]) -> PyResult<usize> {
