@@ -5,6 +5,11 @@ use std::str;
 use std::time::Duration;
 use std::time::SystemTime;
 
+struct SerialReadResult<'a> {
+    data: &'a [u8],
+    is_complete: bool,
+}
+
 #[pyclass]
 struct PySerial {
     serial: Box<dyn serialport::SerialPort>,
@@ -14,11 +19,66 @@ fn check_python_signals() -> PyResult<()> {
     Python::with_gil(|py| -> PyResult<()> { py.check_signals() })
 }
 
+fn is_new_line(value: u8) -> bool {
+    0x0a == value
+}
+
+fn copy_until_end_of_line(buffer_current: &[u8]) -> SerialReadResult {
+    let mut len = buffer_current.len();
+
+    for (i, v) in buffer_current.iter().enumerate() {
+        if is_new_line(*v) {
+            len = i;
+            break;
+        }
+    }
+
+    SerialReadResult {
+        data: &buffer_current[..len],
+        is_complete: len < buffer_current.len(),
+    }
+}
+
+fn _read_line(
+    serial: &mut Box<dyn serialport::SerialPort>,
+    timeout_in_millis: u64,
+) -> PyResult<String> {
+    let time_start = SystemTime::now();
+    let mut buffer: Vec<u8> = Vec::new();
+
+    loop {
+        check_python_signals()?;
+
+        let mut buffer_current: Vec<u8> = vec![0, 32];
+
+        if serial.read(buffer_current.as_mut_slice()).is_ok() {
+            let serial_result = copy_until_end_of_line(&buffer_current);
+
+            buffer.extend_from_slice(serial_result.data);
+
+            if serial_result.is_complete {
+                break;
+            }
+        };
+
+        if let Ok(time_elapsed) = time_start.elapsed() {
+            if time_elapsed > Duration::from_millis(timeout_in_millis) {
+                return Err(exceptions::PyTimeoutError::new_err(
+                    "Timeout occurred when trying to read",
+                ));
+            }
+        }
+    }
+    // serial_buf.iter().collect::<String>().as_bytes()
+
+    let result = String::from_utf8(buffer)?;
+
+    Ok(result)
+}
 #[pymethods]
 impl PySerial {
     #[new]
     fn connect(baud_rate: u32, port: &str) -> PyResult<PySerial> {
-        // fn connect(baud_rate: u32, port: &str) -> PyResult<Box<dyn serialport::SerialPort>> {
         match serialport::new(port, baud_rate)
             .timeout(Duration::from_millis(10))
             .open()
@@ -30,39 +90,13 @@ impl PySerial {
         }
     }
 
-    fn read_line(&mut self, timeout_in_millis: u64) -> PyResult<Vec<char>> {
-        let mut serial_buf: Vec<char> = Vec::new();
+    fn read_line(&mut self, timeout_in_millis: u64) -> PyResult<String> {
+        Python::with_gil(|py| -> PyResult<String> {
+            let result: PyResult<String> =
+                py.allow_threads(move || _read_line(&mut self.serial, timeout_in_millis));
 
-        let mut done = false;
-
-        let time_start = SystemTime::now();
-
-        while !done {
-            check_python_signals()?;
-
-            let mut buf: Vec<u8> = vec![0, 32];
-
-            if self.serial.read(buf.as_mut_slice()).is_ok() {
-                for val in buf.iter() {
-                    let v = *val as char;
-                    serial_buf.push(v);
-                    if '\n' == v || '\r' == v {
-                        done = true;
-                        break;
-                    }
-                }
-            };
-
-            if let Ok(time_elapsed) = time_start.elapsed() {
-                if time_elapsed > Duration::from_millis(timeout_in_millis) {
-                    return Err(exceptions::PyTimeoutError::new_err(
-                        "Timeout occurred when trying to read",
-                    ));
-                }
-            }
-        }
-
-        Ok(serial_buf)
+            return result;
+        })
     }
 
     fn write(&mut self, data: &[u8]) -> PyResult<usize> {
