@@ -19,8 +19,8 @@ def run() -> None:
         port="/dev/ttyS0",
     )
 
-    # message = f"{socket.gethostname()}"
-    message = "123\456"
+    message = f"{socket.gethostname()}"
+    # message = "123\456"
     while True:
         try:
             buffer = serial.read_line(
@@ -35,7 +35,7 @@ def run() -> None:
             logger.info(f"Reading failed: {e}")
 
         try:
-            serial.write(f"{message}\r\n".encode())
+            serial.write(f"{message}\n".encode())
         except Exeption as e:
             logger.error(f"Failed to write: {e}")
 
