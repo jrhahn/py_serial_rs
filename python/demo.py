@@ -19,8 +19,8 @@ def run() -> None:
         port="/dev/ttyS0",
     )
 
-    message = f"{socket.gethostname()}"
-
+    # message = f"{socket.gethostname()}"
+    message = "123\456"
     while True:
         try:
             buffer = serial.read_line(
