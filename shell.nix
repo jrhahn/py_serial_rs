@@ -4,13 +4,14 @@ stdenv.mkDerivation rec {
       name = "OpenEthereum";
       src = null;
       buildInputs = [ 
-          rustup 
-          rust-analyzer 
+          clang 
+          llvmPackages_13.llvm
+          maturin
           openssl 
           pkgconfig 
+          rustup 
+          rust-analyzer 
           udev 
-          clang 
-          maturin
 #          python-language-server  
       ];
   }

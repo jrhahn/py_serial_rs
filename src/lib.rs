@@ -69,7 +69,6 @@ fn _read_line(
             }
         }
     }
-    // serial_buf.iter().collect::<String>().as_bytes()
 
     let result = String::from_utf8(buffer)?;
 
@@ -120,4 +119,49 @@ fn py_rust(_py: Python, m: &PyModule) -> PyResult<()> {
     m.add_function(wrap_pyfunction!(list_ports, m)?)?;
     m.add_class::<PySerial>()?;
     Ok(())
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn is_new_line_negative() {
+        assert!(!is_new_line(0))
+    }
+
+    #[test]
+    fn is_new_line_positive() {
+        assert!(is_new_line(0x0a))
+    }
+
+    #[test]
+    fn copy_until_end_of_line_incomplete() {
+        let actual = copy_until_end_of_line(&[0]);
+        let expected = [0];
+
+        assert!(!actual.is_complete);
+        assert_eq!(expected.len(), actual.data.len());
+
+        for ii in 0..expected.len() {
+            assert_eq!(expected[ii], actual.data[ii]);
+        }
+    }
+
+    #[test]
+    fn copy_until_end_of_line_complete() {
+        let actual = copy_until_end_of_line(&[0, 12, 13, 10, 12]);
+        let expected = [0, 12, 13];
+
+        assert!(actual.is_complete);
+        assert_eq!(
+            expected.len(),
+            actual.data.len(),
+            "Data has unexpected length."
+        );
+
+        for ii in 0..expected.len() {
+            assert_eq!(expected[ii], actual.data[ii]);
+        }
+    }
 }
