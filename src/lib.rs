@@ -23,19 +23,27 @@ fn is_new_line(value: u8) -> bool {
     0x0a == value
 }
 
-fn copy_until_end_of_line(buffer_current: &[u8]) -> SerialReadResult {
+fn copy_until_end_of_line(buffer_current: &[u8], num_bytes_read: usize) -> SerialReadResult {
     let mut len = buffer_current.len();
+
+    let mut is_complete = false;
 
     for (i, v) in buffer_current.iter().enumerate() {
         if is_new_line(*v) {
             len = i;
+            is_complete = true;
+            break;
+        }
+
+        if i >= num_bytes_read {
+            len = num_bytes_read;
             break;
         }
     }
 
     SerialReadResult {
         data: &buffer_current[..len],
-        is_complete: len < buffer_current.len(),
+        is_complete,
     }
 }
 
@@ -51,8 +59,8 @@ fn _read_line(
 
         let mut buffer_current: Vec<u8> = vec![0, 32];
 
-        if serial.read(buffer_current.as_mut_slice()).is_ok() {
-            let serial_result = copy_until_end_of_line(&buffer_current);
+        if let Ok(num_bytes_read) = serial.read(buffer_current.as_mut_slice()) {
+            let serial_result = copy_until_end_of_line(&buffer_current, num_bytes_read);
 
             buffer.extend_from_slice(serial_result.data);
 
@@ -91,10 +99,7 @@ impl PySerial {
 
     fn read_line(&mut self, timeout_in_millis: u64) -> PyResult<String> {
         Python::with_gil(|py| -> PyResult<String> {
-            let result: PyResult<String> =
-                py.allow_threads(move || _read_line(&mut self.serial, timeout_in_millis));
-
-            return result;
+            py.allow_threads(move || _read_line(&mut self.serial, timeout_in_millis))
         })
     }
 
@@ -137,7 +142,7 @@ mod tests {
 
     #[test]
     fn copy_until_end_of_line_incomplete() {
-        let actual = copy_until_end_of_line(&[0]);
+        let actual = copy_until_end_of_line(&[0], 1);
         let expected = [0];
 
         assert!(!actual.is_complete);
@@ -150,7 +155,7 @@ mod tests {
 
     #[test]
     fn copy_until_end_of_line_complete() {
-        let actual = copy_until_end_of_line(&[0, 12, 13, 10, 12]);
+        let actual = copy_until_end_of_line(&[0, 12, 13, 10, 12], 5);
         let expected = [0, 12, 13];
 
         assert!(actual.is_complete);
