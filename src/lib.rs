@@ -69,7 +69,7 @@ fn _read_line(
             }
         };
 
-        if let Some(timeout) = timeout_in_millis.unwrap() {
+        if let Some(timeout) = timeout_in_millis {
             if let Ok(time_elapsed) = time_start.elapsed() {
                 if time_elapsed > Duration::from_millis(timeout) {
                     return Err(exceptions::PyTimeoutError::new_err(
@@ -99,7 +99,7 @@ impl PySerial {
         }
     }
 
-    fn read_line(&mut self, timeout_in_millis: u64) -> PyResult<String> {
+    fn read_line(&mut self, timeout_in_millis: Option<u64>) -> PyResult<String> {
         Python::with_gil(|py| -> PyResult<String> {
             py.allow_threads(move || _read_line(&mut self.serial, timeout_in_millis))
         })
