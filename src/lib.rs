@@ -49,7 +49,7 @@ fn copy_until_end_of_line(buffer_current: &[u8], num_bytes_read: usize) -> Seria
 
 fn _read_line(
     serial: &mut Box<dyn serialport::SerialPort>,
-    timeout_in_millis: u64,
+    timeout_in_millis: Option<u64>,
 ) -> PyResult<String> {
     let time_start = SystemTime::now();
     let mut buffer: Vec<u8> = Vec::new();
@@ -69,11 +69,13 @@ fn _read_line(
             }
         };
 
-        if let Ok(time_elapsed) = time_start.elapsed() {
-            if time_elapsed > Duration::from_millis(timeout_in_millis) {
-                return Err(exceptions::PyTimeoutError::new_err(
-                    "Timeout occurred when trying to read",
-                ));
+        if let Some(timeout) = timeout_in_millis {
+            if let Ok(time_elapsed) = time_start.elapsed() {
+                if time_elapsed > Duration::from_millis(timeout) {
+                    return Err(exceptions::PyTimeoutError::new_err(
+                        "Timeout occurred when trying to read",
+                    ));
+                }
             }
         }
     }
@@ -97,7 +99,7 @@ impl PySerial {
         }
     }
 
-    fn read_line(&mut self, timeout_in_millis: u64) -> PyResult<String> {
+    fn read_line(&mut self, timeout_in_millis: Option<u64>) -> PyResult<String> {
         Python::with_gil(|py| -> PyResult<String> {
             py.allow_threads(move || _read_line(&mut self.serial, timeout_in_millis))
         })
@@ -120,7 +122,7 @@ fn list_ports() {
 }
 
 #[pymodule]
-fn py_rust(_py: Python, m: &PyModule) -> PyResult<()> {
+fn py_serial_rs(_py: Python, m: &PyModule) -> PyResult<()> {
     m.add_function(wrap_pyfunction!(list_ports, m)?)?;
     m.add_class::<PySerial>()?;
     Ok(())
