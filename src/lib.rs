@@ -122,7 +122,7 @@ fn list_ports() {
 }
 
 #[pymodule]
-fn py_rust(_py: Python, m: &PyModule) -> PyResult<()> {
+fn py_serial_rs(_py: Python, m: &PyModule) -> PyResult<()> {
     m.add_function(wrap_pyfunction!(list_ports, m)?)?;
     m.add_class::<PySerial>()?;
     Ok(())

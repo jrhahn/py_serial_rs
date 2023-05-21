@@ -4,7 +4,7 @@ import logging
 import socket
 import time
 
-from py_rust import PySerial
+from py_serial_rs import PySerial
 
 
 def current_milli_time():
