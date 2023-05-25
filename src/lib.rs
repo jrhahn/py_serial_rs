@@ -82,8 +82,9 @@ fn _read_line(
 
 /// Sets up a connection with a serial port
 ///
-/// * `baud_rate: int` - baud rate of the serial port
-/// * `port: str` - name of the serial port
+/// Args:
+///     baud_rate (int): baud rate of the serial port
+///     port (str): name of the serial port
 #[pyclass]
 struct PySerial {
     serial: Box<dyn serialport::SerialPort>,
@@ -106,9 +107,11 @@ impl PySerial {
 
     /// Returns data from the serial port until newline (`\\n`) is read
     ///
-    /// * `timeout_in_millis: int`  - (Optional) Duration in milliseconds until a timeout exception is thrown
+    /// Args:
+    ///     timeout_in_millis (int):  (Optional) Duration in milliseconds until a timeout exception is thrown
     ///
-    /// Returns a string with the received data
+    /// Returns:
+    ///     str: A string with the received data
     fn read_line(&mut self, timeout_in_millis: Option<u64>) -> PyResult<String> {
         Python::with_gil(|py| -> PyResult<String> {
             py.allow_threads(move || _read_line(&mut self.serial, timeout_in_millis))
@@ -117,14 +120,16 @@ impl PySerial {
 
     /// Writes data to the serial port
     ///
-    /// * `data` - Byte array of data that will be written
+    /// Args:
+    ///     data (bytes): Byte array of data that will be written
     ///
-    /// Returns the number of bytes written
+    /// Returns:
+    ///     int: the number of bytes written
     fn write(&mut self, data: &[u8]) -> PyResult<usize> {
         Ok(self.serial.write(data)?)
     }
 
-    /// close the connection to the serial port (handled internally)
+    /// Close the connection to the serial port (handled internally)
     fn close(&mut self) {}
 }
 
