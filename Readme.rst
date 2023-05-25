@@ -40,9 +40,6 @@ Demo scripts are located in `/python`:
 * `demo.py` shows a simple direct communication via the serial connection
 * `demo_threads.py` demonstrates how this package can be used with threads
 
-.. toctree::
-   :maxdepth: 2
-   :caption: Contents:
 
 ========================================
 Documentation

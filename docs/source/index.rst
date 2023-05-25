@@ -3,7 +3,7 @@
    You can adapt this file completely to your liking, but it should at least
    contain the root `toctree` directive.
 
-Documentation of py_serial_rs
+py_serial_rs
 ========================================
 
 The goal of this package is to provide a fast and reliable interface to the serial ports.
