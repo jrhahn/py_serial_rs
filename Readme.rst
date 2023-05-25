@@ -46,4 +46,5 @@ Demo scripts are located in `/python`:
 
 ========================================
 Documentation
-`https://py-serial-rs.readthedocs.io/ <https://py-serial-rs.readthedocs.io/>_
+========================================
+Link to the documentation: `https://py-serial-rs.readthedocs.io/ <https://py-serial-rs.readthedocs.io/>_
