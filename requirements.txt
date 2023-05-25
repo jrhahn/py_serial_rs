@@ -1,1 +1,11 @@
 maturin
+sphinx
+sphinx-autoapi
+sphinx-autodoc2
+sphinx-book-theme
+sphinx_copybutton
+sphinx_design
+sphinx_pyscript
+sphinx_tippy
+sphinx_togglebutton
+sphinxcontrib-napoleon

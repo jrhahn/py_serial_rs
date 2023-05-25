@@ -10,26 +10,21 @@ struct SerialReadResult<'a> {
     is_complete: bool,
 }
 
-#[pyclass]
-struct PySerial {
-    serial: Box<dyn serialport::SerialPort>,
-}
-
-fn check_python_signals() -> PyResult<()> {
+fn _check_python_signals() -> PyResult<()> {
     Python::with_gil(|py| -> PyResult<()> { py.check_signals() })
 }
 
-fn is_new_line(value: u8) -> bool {
+fn _is_new_line(value: u8) -> bool {
     0x0a == value
 }
 
-fn copy_until_end_of_line(buffer_current: &[u8], num_bytes_read: usize) -> SerialReadResult {
+fn _copy_until_end_of_line(buffer_current: &[u8], num_bytes_read: usize) -> SerialReadResult {
     let mut len = buffer_current.len();
 
     let mut is_complete = false;
 
     for (i, v) in buffer_current.iter().enumerate() {
-        if is_new_line(*v) {
+        if _is_new_line(*v) {
             len = i;
             is_complete = true;
             break;
@@ -55,12 +50,12 @@ fn _read_line(
     let mut buffer: Vec<u8> = Vec::new();
 
     loop {
-        check_python_signals()?;
+        _check_python_signals()?;
 
         let mut buffer_current: Vec<u8> = vec![0, 32];
 
         if let Ok(num_bytes_read) = serial.read(buffer_current.as_mut_slice()) {
-            let serial_result = copy_until_end_of_line(&buffer_current, num_bytes_read);
+            let serial_result = _copy_until_end_of_line(&buffer_current, num_bytes_read);
 
             buffer.extend_from_slice(serial_result.data);
 
@@ -84,10 +79,20 @@ fn _read_line(
 
     Ok(result)
 }
+
+/// Sets up a connection with a serial port
+///
+/// * `baud_rate: int` - baud rate of the serial port
+/// * `port: str` - name of the serial port
+#[pyclass]
+struct PySerial {
+    serial: Box<dyn serialport::SerialPort>,
+}
+
 #[pymethods]
 impl PySerial {
     #[new]
-    fn connect(baud_rate: u32, port: &str) -> PyResult<PySerial> {
+    fn new(baud_rate: u32, port: &str) -> PyResult<PySerial> {
         match serialport::new(port, baud_rate)
             .timeout(Duration::from_millis(10))
             .open()
@@ -99,31 +104,32 @@ impl PySerial {
         }
     }
 
+    /// Returns data from the serial port until newline (`\\n`) is read
+    ///
+    /// * `timeout_in_millis: int`  - (Optional) Duration in milliseconds until a timeout exception is thrown
+    ///
+    /// Returns a string with the received data
     fn read_line(&mut self, timeout_in_millis: Option<u64>) -> PyResult<String> {
         Python::with_gil(|py| -> PyResult<String> {
             py.allow_threads(move || _read_line(&mut self.serial, timeout_in_millis))
         })
     }
 
+    /// Writes data to the serial port
+    ///
+    /// * `data` - Byte array of data that will be written
+    ///
+    /// Returns the number of bytes written
     fn write(&mut self, data: &[u8]) -> PyResult<usize> {
         Ok(self.serial.write(data)?)
     }
 
+    /// close the connection to the serial port (handled internally)
     fn close(&mut self) {}
-}
-
-#[pyfunction]
-fn list_ports() {
-    println!("Listing ports..");
-    let ports = serialport::available_ports().expect("No ports found!");
-    for p in ports {
-        println!("{}", p.port_name);
-    }
 }
 
 #[pymodule]
 fn py_serial_rs(_py: Python, m: &PyModule) -> PyResult<()> {
-    m.add_function(wrap_pyfunction!(list_ports, m)?)?;
     m.add_class::<PySerial>()?;
     Ok(())
 }
@@ -134,17 +140,17 @@ mod tests {
 
     #[test]
     fn is_new_line_negative() {
-        assert!(!is_new_line(0))
+        assert!(!_is_new_line(0))
     }
 
     #[test]
     fn is_new_line_positive() {
-        assert!(is_new_line(0x0a))
+        assert!(_is_new_line(0x0a))
     }
 
     #[test]
     fn copy_until_end_of_line_incomplete() {
-        let actual = copy_until_end_of_line(&[0], 1);
+        let actual = _copy_until_end_of_line(&[0], 1);
         let expected = [0];
 
         assert!(!actual.is_complete);
@@ -157,7 +163,7 @@ mod tests {
 
     #[test]
     fn copy_until_end_of_line_complete() {
-        let actual = copy_until_end_of_line(&[0, 12, 13, 10, 12], 5);
+        let actual = _copy_until_end_of_line(&[0, 12, 13, 10, 12], 5);
         let expected = [0, 12, 13];
 
         assert!(actual.is_complete);

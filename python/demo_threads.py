@@ -5,7 +5,7 @@ import socket
 import time
 from threading import Thread
 
-from py_rust import PySerial
+from py_serial_rs import PySerial
 
 
 def current_milli_time():
@@ -44,7 +44,7 @@ def run_serial() -> None:
 
         try:
             serial.write(f"{message}\n".encode())
-        except Exeption as e:
+        except Exception as e:
             logger.error(f"Failed to write: {e}")
 
 
