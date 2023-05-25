@@ -20,9 +20,10 @@ extensions = [
     'sphinx.ext.autodoc',
     'sphinx.ext.autosummary',
     'sphinx.ext.napoleon',
-"sphinx.ext.viewcode",
+    "sphinx.ext.viewcode",
     "sphinx_design",
     "sphinx_pyscript",
+    'sphinx_rtd_theme',
 ]
 
 pygments_style = 'sphinx'
@@ -40,21 +41,8 @@ autosummary_generate = True
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#options-for-html-output
 
 # html_theme = 'alabaster'
-html_theme = "sphinx_book_theme"
+html_theme = "sphinx_rtd_theme"
 html_static_path = ["_static"]
 
 # html_static_path = ['_static']
 
-html_title = ""
-html_theme_options = {
-    "home_page_in_toc": True,
-    # "github_url": "https://github.com/executablebooks/MyST-Parser",
-    # "repository_url": "https://github.com/executablebooks/MyST-Parser",
-    # "repository_branch": "master",
-    "path_to_docs": "docs",
-    "use_repository_button": False,
-    "use_edit_page_button": False,
-    "use_issues_button": False,
-    # "announcement": "<b>v1.0.0</b> is now out! See the Changelog for details",
-}
-html_last_updated_fmt = ""
