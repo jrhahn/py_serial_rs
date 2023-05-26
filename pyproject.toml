@@ -15,9 +15,6 @@ authors = [
   {email = "mail.jhahn@googlemail.com"},
   {name = "Jürgen Hahn"}
 ]
-maintainers = [
-  {name = "Jürgen Hahn", email = "mail.jhahn@googlemail.com"}
-]
 
 [tool.maturin]
 features = ["pyo3/extension-module"]
@@ -29,5 +26,5 @@ target_version = ['py38']
 [project.urls]
 "Source Code" = "https://github.com/jrhahn/py_serial_rs"
 Issues = "https://github.com/jrhahn/py_serial_rs/issues"
-Documentation = "https://readthedocs.org/projects/py-serial-rs/"
+Documentation = "https://py-serial-rs.readthedocs.io/en/latest/"
 
