@@ -11,5 +11,6 @@ crate-type = ["cdylib"]
 [dependencies]
 clippy = "0.0.302"
 pyo3 = "0.18.1"
+rustfilt = "0.2.1"
 serialport = "4.2.0"
 time = "0.3.20"
