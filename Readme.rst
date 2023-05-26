@@ -8,8 +8,7 @@ py_serial_rs
 
 The goal of this package is to provide a fast and reliable interface to the serial ports.
 
-Instead of implementing the logic in Python, this package builds around `serialport <https://docs.rs/serialport/latest/serialport/>`_
-crate written for Rust. This package supports threading.
+Instead of implementing the logic in Python, this package builds around `serialport <https://docs.rs/serialport/latest/serialport/>`_ written in Rust. This package supports threading.
 
 
 ========================================
