@@ -1,4 +1,5 @@
 maturin
+patchelf
 sphinx
 sphinx-autoapi
 sphinx-autodoc2
