@@ -1,3 +1,3 @@
 #!/bin/bash
 
-docker run --rm -v $(pwd):/io py-serial-rs-builder publish  # or other maturin arguments
+docker run --rm -it -v $(pwd):/io py-serial-rs-builder   # or other maturin arguments
