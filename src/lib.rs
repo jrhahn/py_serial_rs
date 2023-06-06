@@ -131,6 +131,16 @@ impl PySerial {
 
     /// Close the connection to the serial port (handled internally)
     fn close(&mut self) {}
+
+    /// Clear the input buffer. Any pending input will be discarded.
+    fn reset_input_buffer(&mut self) {
+        if self.serial.clear(serialport::ClearBuffer::Input).is_ok() {}
+    }
+
+    /// Clear the output buffer. Any pending output will be discarded.
+    fn reset_output_buffer(&mut self) {
+        if self.serial.clear(serialport::ClearBuffer::Output).is_ok() {}
+    }
 }
 
 #[pymodule]
