@@ -62,17 +62,17 @@ fn _read_line(
             if serial_result.is_complete {
                 break;
             }
-        };
-
-        if let Some(timeout) = timeout_in_millis {
-            if let Ok(time_elapsed) = time_start.elapsed() {
-                if time_elapsed > Duration::from_millis(timeout) {
-                    return Err(exceptions::PyTimeoutError::new_err(
-                        "Timeout occurred when trying to read",
-                    ));
-                }
-            }
         }
+
+        //        if let Some(timeout) = timeout_in_millis {
+        //            if let Ok(time_elapsed) = time_start.elapsed() {
+        //                if time_elapsed > Duration::from_millis(timeout) {
+        //                    return Err(exceptions::PyTimeoutError::new_err(
+        //                        "Timeout occurred when trying to read",
+        //                    ));
+        //                }
+        //            }
+        //        }
     }
 
     let result = String::from_utf8(buffer)?;
